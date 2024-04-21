@@ -1,11 +1,16 @@
 class Signaling {
-    constructor() {
+    constructor(role = 'viewer') {
         this.ws = new WebSocket('ws://localhost:8080/ws');
+        this.role = role
+        this.onSdpOffer_ = () => {}
         this.onSdpAnswer_ = () => {}
         this.onIceCandidate_ = () => {}
         this.ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
             console.log(event.data)
+            if (message.type === 'offer') {
+                this.onSdpOffer_(message.data);
+            }
             if (message.type === 'answer') {
                 this.onSdpAnswer_(message.data);
             }
@@ -21,7 +26,7 @@ class Signaling {
                 console.log('Connected to signaling server');
                 this.ws.send(JSON.stringify({
                     type: "join",
-                    data: "viewer"
+                    data: this.role
                 }));
                 resolve();
             } else {
@@ -30,24 +35,35 @@ class Signaling {
                     console.log('Connected to signaling server');
                     this.ws.send(JSON.stringify({
                         type: "join",
-                        data: "viewer"
+                        data: this.role
                     }));
                 };
             }
         });
     }
 
-    onSdpAnswer(callback) {
-        this.onSdpAnswer_ = callback
+    onSdpOffer(f) {
+        this.onSdpOffer_ = f
     }
 
-    onIceCandidate(callback) {
-        this.onIceCandidate_ = callback
+    onSdpAnswer(f) {
+        this.onSdpAnswer_ = f
+    }
+
+    onIceCandidate(f) {
+        this.onIceCandidate_ = f
     }
 
     sendSdpOffer(sdp) {
         this.ws.send(JSON.stringify({
             type: 'offer',
+            data: sdp
+        }));
+    }
+
+    sendSdpAnswer(sdp) {
+        this.ws.send(JSON.stringify({
+            type: 'answer',
             data: sdp
         }));
     }

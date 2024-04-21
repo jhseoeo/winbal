@@ -2,7 +2,7 @@ const video = document.getElementById('video')
 
 class WebRTC {
     constructor() {
-        this.signaling = new Signaling();
+        this.signaling = new Signaling("master");
         this.pc = new RTCPeerConnection({
             iceServers: [
                 {
@@ -19,28 +19,28 @@ class WebRTC {
         this.pc.oniceconnectionstatechange = (event) => {
             console.log(this.pc.iceConnectionState)
         }
-        this.signaling.onSdpAnswer(async (answer) => {
+        this.signaling.onSdpOffer(async (answer) => {
             await this.pc.setRemoteDescription(answer);
+            const sdp = await this.pc.createAnswer();
+            await this.pc.setLocalDescription(sdp);
+            this.signaling.sendSdpAnswer(sdp);
         });
         this.signaling.onIceCandidate(async (candidate) => {
             await this.pc.addIceCandidate(candidate);
         });
-        this.pc.ontrack = (event) => {
-            console.log("ontrack");
-            video.srcObject = event.streams[0];
-        }
+
+        navigator.mediaDevices.getDisplayMedia({ video: true, audio: false }).then((stream) => {
+            stream.getTracks().forEach((track) => {
+                this.pc.addTrack(track, stream);
+            });
+            video.srcObject = stream;
+        });
     }
 
-    async createOffer() {
+    async start() {
         await this.signaling.waitForConnection();
-        const offer = await this.pc.createOffer({
-            offerToReceiveVideo: true,
-            offerToReceiveAudio: false,
-        });
-        await this.pc.setLocalDescription(offer);
-        this.signaling.sendSdpOffer(offer);
     }
 }
 
 const webRtc = new WebRTC();
-webRtc.createOffer();
+webRtc.start();

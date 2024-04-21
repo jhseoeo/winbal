@@ -1,6 +1,10 @@
 package main
 
-import "github.com/gorilla/websocket"
+import (
+	"log"
+
+	"github.com/gorilla/websocket"
+)
 
 type Session struct {
 	id     string
@@ -71,10 +75,12 @@ func NewSession(id string) *Session {
 }
 
 func (s *Session) SetMaster(c *websocket.Conn) {
+	log.Println("Master joined")
 	s.master.conn = c
 }
 
 func (s *Session) SetViewer(c *websocket.Conn) {
+	log.Println("Viewer joined")
 	s.viewer.conn = c
 }
 

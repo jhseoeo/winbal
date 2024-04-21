@@ -40,7 +40,7 @@ func getValueFromMap[T any](m map[string]interface{}, key string) (T, error) {
 	}
 	vv, ok := v.(T)
 	if !ok {
-		return ZERO, fmt.Errorf("value is not matched")
+		return ZERO, fmt.Errorf("value for key %s is not matched", key)
 	}
 	return vv, nil
 }
@@ -58,7 +58,7 @@ func parseIceCandidateInit(data interface{}) (webrtc.ICECandidateInit, error) {
 	if err != nil {
 		return res, err
 	}
-	sdpMLineIndex, err := getValueFromMap[int](dmap, "sdpMLineIndex")
+	sdpMLineIndex, err := getValueFromMap[float64](dmap, "sdpMLineIndex")
 	if err != nil {
 		return res, err
 	}
@@ -69,7 +69,8 @@ func parseIceCandidateInit(data interface{}) (webrtc.ICECandidateInit, error) {
 		return res, err
 	}
 	res.SDPMid = &sdpMid
-	res.UsernameFragment, err = getValueFromMap[*string](dmap, "usernameFragment")
+	usernameFragment, err := getValueFromMap[string](dmap, "usernameFragment")
+	res.UsernameFragment = &usernameFragment
 	if err != nil {
 		return res, err
 	}

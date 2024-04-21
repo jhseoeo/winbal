@@ -21,15 +21,16 @@ import (
 )
 
 func main() {
-	x264, err := x264.NewParams()
+	x264p, err := x264.NewParams()
 	if err != nil {
 		panic(err)
 	}
-	x264.BitRate = 512000
-	x264.KeyFrameInterval = 60
+	x264p.Preset = x264.PresetUltrafast
+	x264p.BitRate = 512000
+	x264p.KeyFrameInterval = 60
 
 	codecSelector := mediadevices.NewCodecSelector(
-		mediadevices.WithVideoEncoders(&x264),
+		mediadevices.WithVideoEncoders(&x264p),
 	)
 	mediaEngine := webrtc.MediaEngine{}
 	codecSelector.Populate(&mediaEngine)
@@ -51,8 +52,8 @@ func main() {
 
 	stream, err := mediadevices.GetDisplayMedia(mediadevices.MediaStreamConstraints{
 		Video: func(c *mediadevices.MediaTrackConstraints) {
-			c.Width = prop.Int(640)
-			c.Height = prop.Int(480)
+			c.Width = prop.Int(1600)
+			c.Height = prop.Int(900)
 			c.FrameRate = prop.Float(30)
 			c.DeviceID = prop.String(anyScreenId)
 		},
