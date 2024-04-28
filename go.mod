@@ -4,17 +4,14 @@ go 1.22.0
 
 require (
 	github.com/gorilla/websocket v1.5.1
+	github.com/lxn/win v0.0.0-20210218163916-a377121e959e
 	github.com/pion/mediadevices v0.6.2
 	github.com/pion/webrtc/v3 v3.2.38
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/gen2brain/shm v0.0.0-20230802011745-f2460f5984f7 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/jezek/xgb v1.1.0 // indirect
-	github.com/kbinani/screenshot v0.0.0-20230812210009-b87d31814237 // indirect
-	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/pion/datachannel v1.5.5 // indirect
 	github.com/pion/dtls/v2 v2.2.7 // indirect
 	github.com/pion/ice/v2 v2.3.15 // indirect

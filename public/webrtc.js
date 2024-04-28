@@ -10,9 +10,9 @@ class WebRTC {
                 }
             ]
         });
-        this.pc.onicecandidate = (event) => {
+        this.pc.onicecandidate = async (event) => {
             if (event.candidate) {
-                console.log(event.candidate.toJSON());
+                console.log(event.candidate);
                 this.signaling.sendIceCandidate(event.candidate);
             }
         }
@@ -27,8 +27,27 @@ class WebRTC {
         });
         this.pc.ontrack = (event) => {
             console.log("ontrack");
-            video.srcObject = event.streams[0];
+            video.srcObject = new MediaStream([event.track]);
         }
+        this.dc = this.pc.createDataChannel("ping")
+        this.dc.onmessage = (event) => {
+            console.log("datachannel message:", event.data);
+        }
+        this.dc.onopen = () => {
+            console.log("datachannel open");
+            setInterval(() => {
+                this.dc.send("ping");
+            }, 1000);
+        }
+
+        setTimeout(() => {
+            console.log(
+                this.pc.iceGatheringState,
+                this.pc.getReceivers()[0].track.readyState,
+                this.pc.getReceivers()[0].getParameters(),
+                this.pc.getTransceivers()[0].receiver.transport.state
+            );
+        }, 4000);
     }
 
     async createOffer() {
@@ -37,7 +56,7 @@ class WebRTC {
             offerToReceiveVideo: true,
             offerToReceiveAudio: false,
         });
-        await this.pc.setLocalDescription(offer);
+        await this.pc.setLocalDescription(offer); 
         this.signaling.sendSdpOffer(offer);
     }
 }

@@ -16,8 +16,8 @@ COPY . .
 # enable CGO and flags to cross-compile for windows
 ENV CGO_ENABLED=1 GOOS=windows GOARCH=amd64
 ENV CC=x86_64-w64-mingw32-gcc
-ENV AR=x86_64-w64-mingw32-ar
-RUN go build -o app.exe ./cmd/app
+ENV PION_LOG_DEBUG=all
+RUN go build -o app.exe ./cmd/screenshot
 
 # wait for the container to copy the binary
 CMD ["tail", "-f", "/dev/null"]
