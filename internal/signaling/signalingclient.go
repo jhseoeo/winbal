@@ -23,12 +23,15 @@ type SignalingClient struct {
 	onSdpOffer     func(offer webrtc.SessionDescription)
 	onClose        func()
 	onError        func(err error)
+
+	writeCh chan message
 }
 
 func NewSignalingClient() *SignalingClient {
 	dialer := &websocket.Dialer{}
 	return &SignalingClient{
-		dialer: dialer,
+		dialer:  dialer,
+		writeCh: make(chan message),
 	}
 }
 
@@ -101,9 +104,6 @@ func (s *SignalingClient) Connect(host, port string) error {
 	if s.conn != nil {
 		return nil
 	}
-	if s.onIceCandidate == nil {
-		return errors.New("onIceCandidate is not set")
-	}
 	if s.onSdpOffer == nil {
 		return errors.New("onSdpOffer is not set")
 	}
@@ -149,7 +149,9 @@ func (s *SignalingClient) Connect(host, port string) error {
 				if err != nil {
 					s.onError(err)
 				}
-				s.onIceCandidate(ic)
+				if s.onIceCandidate != nil {
+					s.onIceCandidate(ic)
+				}
 			case "offer":
 				sdp, err := parseSessionDescription(msg.Data)
 				if err != nil {
@@ -162,25 +164,34 @@ func (s *SignalingClient) Connect(host, port string) error {
 		}
 	}()
 
-	return nil
+	// write loop
+	for {
+		select {
+		case msg := <-s.writeCh:
+			err := s.conn.WriteJSON(msg)
+			if err != nil {
+				return err
+			}
+		}
+	}
 }
 
 func (s *SignalingClient) Close() error {
 	return s.conn.Close()
 }
 
-func (s *SignalingClient) SendIceCandidate(candidate webrtc.ICECandidateInit) error {
-	return s.conn.WriteJSON(message{
+func (s *SignalingClient) SendIceCandidate(candidate webrtc.ICECandidateInit) {
+	s.writeCh <- message{
 		Type: "candidate",
 		Data: candidate,
-	})
+	}
 }
 
-func (s *SignalingClient) SendSdpAnswer(answer webrtc.SessionDescription) error {
-	return s.conn.WriteJSON(message{
+func (s *SignalingClient) SendSdpAnswer(answer webrtc.SessionDescription) {
+	s.writeCh <- message{
 		Type: "answer",
 		Data: answer,
-	})
+	}
 }
 
 func (s *SignalingClient) OnIceCandidate(f func(webrtc.ICECandidateInit)) {

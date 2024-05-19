@@ -3,7 +3,6 @@ package screenshot
 import (
 	"errors"
 	"image"
-	"log"
 	"syscall"
 	"unsafe"
 
@@ -72,9 +71,7 @@ func Capture(x, y, width, height int) (*image.RGBA, error) {
 		return nil, errors.New("BitBlt failed")
 	}
 
-	log.Println("called GetDIBits, Params:", memory_device, bitmap, 0, uint32(height), memptr, (*win.BITMAPINFO)(unsafe.Pointer(&header)), win.DIB_RGB_COLORS)
 	ret := win.GetDIBits(memory_device, bitmap, 0, uint32(height), (*uint8)(memptr), (*win.BITMAPINFO)(unsafe.Pointer(&header)), win.DIB_RGB_COLORS)
-	log.Println("GetDIBits ret:", ret)
 	if ret == 0 {
 		return nil, errors.New("GetDIBits failed")
 	}

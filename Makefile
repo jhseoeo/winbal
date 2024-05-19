@@ -30,7 +30,7 @@ build_arm:
 
 build_mac:
 	@echo "Building..."
-	go build -o $(PATHROOT)/bin/$(MAC_BINARY_NAME) $(PATHROOT)/cmd/app/main.go
+	go build -o $(PATHROOT)/bin/$(MAC_BINARY_NAME) $(PATHROOT)/cmd/app/...
 
 clean:
 	@echo "Cleaning..."

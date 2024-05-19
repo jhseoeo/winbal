@@ -70,8 +70,8 @@ type encoder struct {
 	cfg             *C.vpx_codec_enc_cfg_t
 	r               video.Reader
 	frameIndex      int
-	tStart          int
-	tLastFrame      int
+	tStart          int64
+	tLastFrame      int64
 	frame           []byte
 	deadline        int
 	requireKeyFrame bool
@@ -199,7 +199,7 @@ func newEncoder(r video.Reader, p prop.Media, params Params, codecIface *C.vpx_c
 	); ec != 0 {
 		return nil, fmt.Errorf("vpx_codec_enc_init failed (%d)", ec)
 	}
-	t0 := time.Now().Nanosecond() / 1000000
+	t0 := time.Now().UnixNano() / 1000000
 	return &encoder{
 		r:          video.ToI420(r),
 		codec:      codec,
@@ -234,7 +234,7 @@ func (e *encoder) Read() ([]byte, func(), error) {
 	e.raw.stride[1] = C.int(yuvImg.CStride)
 	e.raw.stride[2] = C.int(yuvImg.CStride)
 
-	t := time.Now().Nanosecond() / 1000000
+	t := time.Now().UnixNano() / 1000000
 
 	if e.cfg.g_w != C.uint(width) || e.cfg.g_h != C.uint(height) {
 		e.cfg.g_w, e.cfg.g_h = C.uint(width), C.uint(height)
