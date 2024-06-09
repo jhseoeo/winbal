@@ -1,3 +1,5 @@
+import { Signaling } from './signaling.js';
+
 const video = document.getElementById('video')
 
 class WebRTC {
@@ -29,15 +31,13 @@ class WebRTC {
             console.log("ontrack");
             video.srcObject = new MediaStream([event.track]);
         }
-        this.dc = this.pc.createDataChannel("ping")
-        this.dc.onmessage = (event) => {
-            console.log("datachannel message:", event.data);
+        this.keyboardChannel = this.pc.createDataChannel("keyboard");
+        this.mouseChannel = this.pc.createDataChannel("mouse");
+        this.keyboardChannel.onopen = () => {
+            console.log("keyboard datachannel open");
         }
-        this.dc.onopen = () => {
-            console.log("datachannel open");
-            setInterval(() => {
-                this.dc.send("ping");
-            }, 1000);
+        this.mouseChannel.onopen = () => {
+            console.log("mouse datachannel open");
         }
 
         setTimeout(() => {
@@ -59,7 +59,19 @@ class WebRTC {
         await this.pc.setLocalDescription(offer); 
         this.signaling.sendSdpOffer(offer);
     }
+
+    async sendKeyboardEvent(key, type) {
+        if (this.keyboardChannel.readyState !== "open") return;
+        this.keyboardChannel.send(JSON.stringify({ key, type }));
+    }
+
+    async sendMouseEvent(x, y, btn, type) {
+        if (this.mouseChannel.readyState !== "open") return;
+        this.mouseChannel.send(JSON.stringify({ x, y, btn, type }));
+    }
 }
 
 const webRtc = new WebRTC();
 webRtc.createOffer();
+
+export { webRtc };

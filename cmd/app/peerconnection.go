@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -45,17 +46,33 @@ func newPeerConnection(api *webrtc.API, stream mediadevices.MediaStream, sc *sig
 			if err != nil {
 				log.Println("failed to send data channel message:", err)
 			}
+			log.Println("data channel opened:", dc.Label())
 		})
-
-		dc.OnMessage(func(msg webrtc.DataChannelMessage) {
-			log.Println("received data channel message:", string(msg.Data))
-			if string(msg.Data) == "ping" {
-				err := dc.SendText("pong")
+		if dc.Label() == "keyboard" {
+			dc.OnMessage(func(msg webrtc.DataChannelMessage) {
+				log.Println("received keyboard data channel message:", string(msg.Data))
+				var ki KeyboardInput
+				err := json.Unmarshal(msg.Data, &ki)
 				if err != nil {
-					log.Println("failed to send data channel message:", err)
+					log.Println("failed to unmarshal keyboard input:", err)
+					return
 				}
-			}
-		})
+				handleKeyboardInput(ki)
+			})
+		} else if dc.Label() == "mouse" {
+			dc.OnMessage(func(msg webrtc.DataChannelMessage) {
+				log.Println("received mouse data channel message:", string(msg.Data))
+				var mi MouseInput
+				err := json.Unmarshal(msg.Data, &mi)
+				if err != nil {
+					log.Println("failed to unmarshal mouse input:", err)
+					return
+				}
+				handleMouseInput(mi)
+			})
+		} else {
+			log.Println("received unknown data channel:", dc.Label())
+		}
 	})
 
 	pc.OnConnectionStateChange(func(pcs webrtc.PeerConnectionState) {
